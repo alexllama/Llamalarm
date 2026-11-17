@@ -49,10 +49,11 @@ Tap **+** on the alarm list. The editor supports:
   default alarm tone is used. **Use default** clears any custom choice. The last ringtone you
   save becomes the starting point for every new alarm you create; choosing **Use default** clears
   that remembered choice too.
-- **Alarm options** — per-alarm volume slider and vibration override. Each override also has a
-  **Default** choice, which defers to the global setting (vibration is off by default).
+- **Alarm options** — per-alarm volume slider (with a **Use default** choice that defers to the
+  global setting) and vibration **On**/**Off**. New alarms start with vibration off.
 
-The list shows each alarm's schedule and "Next ring: …". Use the on/off switch to enable or
+The list is sorted by clock time from midnight onward (12:00 AM → 11:59 PM), ignoring dates.
+It shows each alarm's schedule and "Next ring: …". Use the on/off switch to enable or
 disable an alarm. The overflow menu (⋮) on an alarm offers:
 
 | Action | Behavior |

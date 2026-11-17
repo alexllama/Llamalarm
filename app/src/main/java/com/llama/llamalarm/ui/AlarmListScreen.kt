@@ -77,6 +77,10 @@ fun AlarmListScreen(
 ) {
     val context = LocalContext.current
     val displayPermissions = rememberDisplayPermissions()
+    // Clock order only, from midnight onward — the date/repeat schedule is not part of the sort.
+    val sortedAlarms = remember(alarms) {
+        alarms.sortedWith(compareBy<Alarm> { it.hour }.thenBy { it.minute })
+    }
     val notificationsLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { }
@@ -146,7 +150,7 @@ fun AlarmListScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(alarms, key = { it.id }) { alarm ->
+                    items(sortedAlarms, key = { it.id }) { alarm ->
                         AlarmCard(
                             alarm = alarm,
                             onClick = { onEdit(alarm.id) },

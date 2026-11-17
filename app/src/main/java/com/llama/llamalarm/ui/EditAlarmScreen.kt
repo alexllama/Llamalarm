@@ -97,7 +97,7 @@ fun EditAlarmScreen(
         mutableStateOf(if (existing == null) settings.defaultRingtoneName else existing.ringtoneName)
     }
     var volumeOverride by remember { mutableStateOf(existing?.volume) }
-    var vibrateOverride by remember { mutableStateOf(existing?.vibrate) }
+    var vibrate by remember { mutableStateOf(existing?.vibrate ?: false) }
     var oneShotDate by remember {
         mutableStateOf(existing?.date ?: LocalDate.now().plusDays(1))
     }
@@ -134,7 +134,7 @@ fun EditAlarmScreen(
 
     val draft = remember(
         hour, minute, type, repeatMask, label, ringtoneUri, ringtoneName,
-        volumeOverride, vibrateOverride,
+        volumeOverride, vibrate,
         oneShotDate, pauseStart, pauseEnd, existing,
     ) {
         Alarm(
@@ -153,7 +153,7 @@ fun EditAlarmScreen(
             ringtoneUri = ringtoneUri,
             ringtoneName = ringtoneName,
             volume = volumeOverride,
-            vibrate = vibrateOverride,
+            vibrate = vibrate,
             skipNextAt = existing?.skipNextAt,
             pauseStartIso = pauseStart?.toString(),
             pauseEndIso = pauseEnd?.toString(),
@@ -373,20 +373,14 @@ fun EditAlarmScreen(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
-                    selected = vibrateOverride == null,
-                    onClick = { vibrateOverride = null },
-                    label = { Text("Default") },
-                    shape = CircleShape,
-                )
-                FilterChip(
-                    selected = vibrateOverride == true,
-                    onClick = { vibrateOverride = true },
+                    selected = vibrate,
+                    onClick = { vibrate = true },
                     label = { Text("On") },
                     shape = CircleShape,
                 )
                 FilterChip(
-                    selected = vibrateOverride == false,
-                    onClick = { vibrateOverride = false },
+                    selected = !vibrate,
+                    onClick = { vibrate = false },
                     label = { Text("Off") },
                     shape = CircleShape,
                 )
