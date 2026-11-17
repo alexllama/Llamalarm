@@ -46,9 +46,11 @@ Tap **+** on the alarm list. The editor supports:
   (showing the preinstalled alarm ringtones), or **Audio file** to pick a file from your
   music/audio library. Imported files are copied into the app's private storage, so
   they keep working if the source file is moved. If a custom sound is missing at ring time, the
-  default alarm tone is used. **Use default** clears any custom choice.
+  default alarm tone is used. **Use default** clears any custom choice. The last ringtone you
+  save becomes the starting point for every new alarm you create; choosing **Use default** clears
+  that remembered choice too.
 - **Alarm options** — per-alarm volume slider and vibration override. Each override also has a
-  **Default** choice, which defers to the global setting.
+  **Default** choice, which defers to the global setting (vibration is off by default).
 
 The list shows each alarm's schedule and "Next ring: …". Use the on/off switch to enable or
 disable an alarm. The overflow menu (⋮) on an alarm offers:

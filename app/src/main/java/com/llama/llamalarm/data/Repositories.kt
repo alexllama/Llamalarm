@@ -115,7 +115,15 @@ class SettingsRepository(
     val settings: StateFlow<AppSettings> = _settings.asStateFlow()
 
     init {
-        _settings.value = store.read()
+        val loaded = store.read()
+        // v1 changed the vibrate default from on to off; apply it once to existing installs.
+        _settings.value = if (loaded.settingsVersion < 1) {
+            val migrated = loaded.copy(vibrate = false, settingsVersion = 1)
+            store.write(migrated)
+            migrated
+        } else {
+            loaded
+        }
     }
 
     fun current(): AppSettings = _settings.value

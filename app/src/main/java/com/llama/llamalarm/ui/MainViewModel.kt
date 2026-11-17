@@ -33,8 +33,22 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun saveAlarm(alarm: Alarm, isNew: Boolean) {
         viewModelScope.launch {
+            val previousRingtoneUri = if (isNew) {
+                settingsRepository.current().defaultRingtoneUri
+            } else {
+                repository.get(alarm.id)?.ringtoneUri
+            }
             val saved = if (isNew) repository.create(alarm) else repository.upsert(alarm.copy(id = alarm.id))
             scheduler.reschedule(saved.id)
+            // Remember the chosen ringtone for future alarms, but only when it actually changed.
+            if (previousRingtoneUri != saved.ringtoneUri) {
+                settingsRepository.update { settings ->
+                    settings.copy(
+                        defaultRingtoneUri = saved.ringtoneUri,
+                        defaultRingtoneName = if (saved.ringtoneUri == null) null else saved.ringtoneName,
+                    )
+                }
+            }
         }
     }
 
@@ -110,6 +124,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (path == null) return
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
+                // The remembered default may be shared by several alarms, so keep its file.
+                if (path == settingsRepository.current().defaultRingtoneUri) return@launch
                 val file = File(path)
                 if (file.canonicalPath.startsWith(File(getApplication<Application>().filesDir, "ringtones").canonicalPath)) {
                     file.delete()

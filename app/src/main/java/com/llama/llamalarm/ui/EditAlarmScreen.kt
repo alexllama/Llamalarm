@@ -89,8 +89,13 @@ fun EditAlarmScreen(
     var type by remember { mutableStateOf(existing?.type ?: AlarmType.ONE_SHOT) }
     var repeatMask by remember { mutableIntStateOf(existing?.repeatDaysMask ?: 0) }
     var label by remember { mutableStateOf(existing?.label.orEmpty()) }
-    var ringtoneUri by remember { mutableStateOf(existing?.ringtoneUri) }
-    var ringtoneName by remember { mutableStateOf(existing?.ringtoneName) }
+    // New alarms start from the last ringtone the user chose; editing keeps its own choice.
+    var ringtoneUri by remember {
+        mutableStateOf(if (existing == null) settings.defaultRingtoneUri else existing.ringtoneUri)
+    }
+    var ringtoneName by remember {
+        mutableStateOf(if (existing == null) settings.defaultRingtoneName else existing.ringtoneName)
+    }
     var volumeOverride by remember { mutableStateOf(existing?.volume) }
     var vibrateOverride by remember { mutableStateOf(existing?.vibrate) }
     var oneShotDate by remember {

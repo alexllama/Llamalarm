@@ -96,7 +96,7 @@ data class SnoozePreset(
 data class AppSettings(
     /** Duration in millis, ordered as displayed. Defaults: 5m, 15m, 1h, 4h, 8h, 24h. */
     val snoozePresets: List<Long> = DEFAULT_SNOOZE_PRESETS,
-    val vibrate: Boolean = true,
+    val vibrate: Boolean = false,
     /** Ring volume 0..1. Applied to the alarm stream playback. */
     val volume: Float = 1f,
     /** When false (default), the alarm rings even in silent/vibrate mode. */
@@ -106,7 +106,11 @@ data class AppSettings(
     val gradualVolume: Boolean = false,
     /** Post a dismissible "Alarm in X" notification ahead of the next occurrence. */
     val upcomingNotification: Boolean = true,
+    /** The last ringtone the user chose; used as the starting point for new alarms. */
     val defaultRingtoneUri: String? = null,
+    val defaultRingtoneName: String? = null,
+    /** Bumped when a stored-settings migration needs to run once. */
+    val settingsVersion: Int = 0,
     val onboardingDone: Boolean = false,
 ) {
     companion object {
