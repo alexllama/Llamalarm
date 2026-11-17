@@ -1,14 +1,22 @@
 package com.llama.llamalarm.ui
 
+import android.app.Activity
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.rememberScrollState
@@ -37,10 +45,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.composed
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,11 +60,13 @@ import com.llama.llamalarm.domain.AlarmType
 import com.llama.llamalarm.domain.Format
 import com.llama.llamalarm.domain.OccurrenceCalculator
 import com.llama.llamalarm.domain.RepeatDays
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun EditAlarmScreen(
     existing: Alarm?,
@@ -67,13 +79,14 @@ fun EditAlarmScreen(
 ) {
     val context = LocalContext.current
     val isNew = existing == null
+    val scrollState = rememberScrollState()
+    val titleBringIntoView = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
 
     var hour by remember { mutableIntStateOf(existing?.hour ?: 7) }
     var minute by remember { mutableIntStateOf(existing?.minute ?: 0) }
-    var type by remember { mutableStateOf(existing?.type ?: AlarmType.RECURRING) }
-    var repeatMask by remember {
-        mutableIntStateOf(existing?.repeatDaysMask ?: RepeatDays.allMask())
-    }
+    var type by remember { mutableStateOf(existing?.type ?: AlarmType.ONE_SHOT) }
+    var repeatMask by remember { mutableIntStateOf(existing?.repeatDaysMask ?: 0) }
     var label by remember { mutableStateOf(existing?.label.orEmpty()) }
     var ringtoneUri by remember { mutableStateOf(existing?.ringtoneUri) }
     var ringtoneName by remember { mutableStateOf(existing?.ringtoneName) }
@@ -90,11 +103,27 @@ fun EditAlarmScreen(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
+            onClearRingtoneFile(ringtoneUri)
             onImportRingtone(uri) { path, name ->
                 ringtoneUri = path
                 ringtoneName = name
             }
         }
+    }
+
+    // Android's own ringtone picker, so built-in notification/alarm sounds are available.
+    val systemSoundLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val picked = result.data
+            ?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
+            ?: return@rememberLauncherForActivityResult
+        onClearRingtoneFile(ringtoneUri)
+        ringtoneUri = picked.toString()
+        ringtoneName = runCatching {
+            RingtoneManager.getRingtone(context, picked)?.getTitle(context)
+        }.getOrNull() ?: "System sound"
     }
 
     val draft = remember(
@@ -165,8 +194,9 @@ fun EditAlarmScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .imePadding()
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -214,7 +244,7 @@ fun EditAlarmScreen(
                         FilterChip(
                             selected = RepeatDays.contains(repeatMask, day),
                             onClick = { repeatMask = RepeatDays.toggle(repeatMask, day) },
-                            label = { Text(day.name.take(3).lowercase().replaceFirstChar(Char::uppercase)) },
+                            label = { Text(day.name.first().toString()) },
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -243,14 +273,24 @@ fun EditAlarmScreen(
                 }
             }
 
-            // Label
+            // Label — scroll it into view once the IME has resized the window.
             OutlinedTextField(
                 value = label,
                 onValueChange = { label = it },
                 label = { Text("Alarm title") },
                 placeholder = { Text("e.g. Wake up") },
                 singleLine = false,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(titleBringIntoView)
+                    .onFocusEvent { state ->
+                        if (state.isFocused) {
+                            scope.launch {
+                                delay(150)
+                                titleBringIntoView.bringIntoView()
+                            }
+                        }
+                    },
             )
 
             HorizontalDivider()
@@ -263,17 +303,31 @@ fun EditAlarmScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = {
+                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Choose system sound")
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                        ringtoneUri?.takeIf { it.startsWith("content://") }?.let { uri ->
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(uri))
+                        }
+                    }
+                    systemSoundLauncher.launch(intent)
+                }) {
+                    Text("Choose system sound")
+                }
                 OutlinedButton(onClick = { ringtoneLauncher.launch(arrayOf("audio/*")) }) {
                     Text("Choose audio file")
                 }
-                if (ringtoneUri != null) {
-                    TextButton(onClick = {
-                        onClearRingtoneFile(ringtoneUri)
-                        ringtoneUri = null
-                        ringtoneName = null
-                    }) {
-                        Text("Use default")
-                    }
+            }
+            if (ringtoneUri != null) {
+                TextButton(onClick = {
+                    onClearRingtoneFile(ringtoneUri)
+                    ringtoneUri = null
+                    ringtoneName = null
+                }) {
+                    Text("Use default")
                 }
             }
 

@@ -36,13 +36,17 @@ Dark theme only. No account, no network access, no analytics.
 Tap **+** on the alarm list. The editor supports:
 
 - **Time**, using the time picker.
-- **Once** vs **Repeats**: a one-time alarm needs a date (including future dates); a recurring
-  alarm has weekday toggles (Repeats → individual days) and an optional start date.
-- **Alarm title** — shown on the ringing screen (up to three lines).
-- **Ringtone** — choose **Default alarm sound** or **Choose audio file** to pick a file from
-  your music/audio library. The chosen file is copied into the app's private storage, so it
-  keeps working if the source file is moved. If the copy is missing at ring time, the default
-  alarm tone is used. **Use default** clears a custom tone.
+- **Once** vs **Repeats**: **Once** is the default. A one-time alarm needs a date (including
+  future dates). Choosing **Repeats** starts with no days selected — pick the ones you want
+  using the single-letter weekday chips, or tap **Every day**. Save stays disabled until at
+  least one day is selected.
+- **Alarm title** — shown on the ringing screen (up to three lines). Tapping it scrolls the
+  field into view above the on-screen keyboard.
+- **Ringtone** — choose **Default alarm sound**, **Choose system sound** to open Android's own
+  picker (showing the preinstalled notification sounds), or **Choose audio file** to pick a file
+  from your music/audio library. Imported files are copied into the app's private storage, so
+  they keep working if the source file is moved. If a custom sound is missing at ring time, the
+  default alarm tone is used. **Use default** clears any custom choice.
 - **Alarm options** — per-alarm volume slider and vibration override. Each override also has a
   **Default** choice, which defers to the global setting.
 
