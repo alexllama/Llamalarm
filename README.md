@@ -43,7 +43,7 @@ Tap **+** on the alarm list. The editor supports:
 - **Alarm title** — shown on the ringing screen (up to three lines). Tapping it scrolls the
   field into view above the on-screen keyboard.
 - **Ringtone** — choose **Default alarm sound**, **System sound** to open Android's own picker
-  (showing the preinstalled notification sounds), or **Audio file** to pick a file from your
+  (showing the preinstalled alarm ringtones), or **Audio file** to pick a file from your
   music/audio library. Imported files are copied into the app's private storage, so
   they keep working if the source file is moved. If a custom sound is missing at ring time, the
   default alarm tone is used. **Use default** clears any custom choice.

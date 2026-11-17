@@ -112,7 +112,7 @@ fun EditAlarmScreen(
         }
     }
 
-    // Android's own ringtone picker, so built-in notification/alarm sounds are available.
+    // Android's own ringtone picker, showing the longer built-in alarm ringtones.
     val systemSoundLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) { result ->
@@ -307,7 +307,7 @@ fun EditAlarmScreen(
                 OutlinedButton(
                     onClick = {
                         val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
                             putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Choose system sound")
                             putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
                             putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
