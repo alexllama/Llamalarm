@@ -42,6 +42,8 @@ Tap **+** on the alarm list. The editor supports:
   least one day is selected.
 - **Alarm title** — shown on the ringing screen (up to three lines). Tapping it scrolls the
   field into view above the on-screen keyboard.
+- **Pause** — set an inclusive **From**/**To** date window to skip every occurrence inside it;
+  **Clear** removes the window.
 - **Ringtone** — choose **Default alarm sound**, **System sound** to open Android's own picker
   (showing the preinstalled alarm ringtones), or **Audio file** to pick a file from your
   music/audio library. Imported files are copied into the app's private storage, so

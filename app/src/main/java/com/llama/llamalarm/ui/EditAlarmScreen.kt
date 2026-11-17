@@ -301,6 +301,50 @@ fun EditAlarmScreen(
 
             HorizontalDivider()
 
+            // Pause window
+            Text("Pause", fontWeight = FontWeight.SemiBold)
+            Text(
+                text = when {
+                    pauseStart != null && pauseEnd != null ->
+                        "${pauseStart!!.format(Format.dateMedium)} – ${pauseEnd!!.format(Format.dateMedium)}"
+
+                    else -> "Not paused"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = {
+                    val initial = pauseStart ?: LocalDate.now()
+                    showDatePicker(context, initial, LocalDate.now()) { start ->
+                        pauseStart = start
+                        if (pauseEnd == null || pauseEnd!!.isBefore(start)) pauseEnd = start
+                    }
+                }) { Text("From") }
+                OutlinedButton(onClick = {
+                    val start = pauseStart ?: LocalDate.now()
+                    val initial = pauseEnd ?: start
+                    showDatePicker(context, initial, start) { end ->
+                        pauseEnd = end
+                    }
+                }) { Text("To") }
+                if (pauseStart != null || pauseEnd != null) {
+                    TextButton(onClick = {
+                        pauseStart = null
+                        pauseEnd = null
+                    }) { Text("Clear") }
+                }
+            }
+            if (type == AlarmType.ONE_SHOT && pauseStart != null) {
+                Text(
+                    "A paused one-time alarm will not ring if its date falls inside the pause window.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+
+            HorizontalDivider()
+
             // Ringtone
             Text("Ringtone", fontWeight = FontWeight.SemiBold)
             Text(
@@ -383,50 +427,6 @@ fun EditAlarmScreen(
                     onClick = { vibrate = false },
                     label = { Text("Off") },
                     shape = CircleShape,
-                )
-            }
-
-            HorizontalDivider()
-
-            // Pause window
-            Text("Pause", fontWeight = FontWeight.SemiBold)
-            Text(
-                text = when {
-                    pauseStart != null && pauseEnd != null ->
-                        "${pauseStart!!.format(Format.dateMedium)} – ${pauseEnd!!.format(Format.dateMedium)}"
-
-                    else -> "Not paused"
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
-                    val initial = pauseStart ?: LocalDate.now()
-                    showDatePicker(context, initial, LocalDate.now()) { start ->
-                        pauseStart = start
-                        if (pauseEnd == null || pauseEnd!!.isBefore(start)) pauseEnd = start
-                    }
-                }) { Text("From") }
-                OutlinedButton(onClick = {
-                    val start = pauseStart ?: LocalDate.now()
-                    val initial = pauseEnd ?: start
-                    showDatePicker(context, initial, start) { end ->
-                        pauseEnd = end
-                    }
-                }) { Text("To") }
-                if (pauseStart != null || pauseEnd != null) {
-                    TextButton(onClick = {
-                        pauseStart = null
-                        pauseEnd = null
-                    }) { Text("Clear") }
-                }
-            }
-            if (type == AlarmType.ONE_SHOT && pauseStart != null) {
-                Text(
-                    "A paused one-time alarm will not ring if its date falls inside the pause window.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.tertiary,
                 )
             }
 
