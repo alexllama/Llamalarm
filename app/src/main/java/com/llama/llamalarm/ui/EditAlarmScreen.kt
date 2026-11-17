@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -303,22 +304,28 @@ fun EditAlarmScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
-                    val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Choose system sound")
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                        putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
-                        ringtoneUri?.takeIf { it.startsWith("content://") }?.let { uri ->
-                            putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(uri))
+                OutlinedButton(
+                    onClick = {
+                        val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Choose system sound")
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                            putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
+                            ringtoneUri?.takeIf { it.startsWith("content://") }?.let { uri ->
+                                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(uri))
+                            }
                         }
-                    }
-                    systemSoundLauncher.launch(intent)
-                }) {
-                    Text("Choose system sound")
+                        systemSoundLauncher.launch(intent)
+                    },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("System sound")
                 }
-                OutlinedButton(onClick = { ringtoneLauncher.launch(arrayOf("audio/*")) }) {
-                    Text("Choose audio file")
+                OutlinedButton(
+                    onClick = { ringtoneLauncher.launch(arrayOf("audio/*")) },
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("Audio file")
                 }
             }
             if (ringtoneUri != null) {
@@ -364,16 +371,19 @@ fun EditAlarmScreen(
                     selected = vibrateOverride == null,
                     onClick = { vibrateOverride = null },
                     label = { Text("Default") },
+                    shape = CircleShape,
                 )
                 FilterChip(
                     selected = vibrateOverride == true,
                     onClick = { vibrateOverride = true },
                     label = { Text("On") },
+                    shape = CircleShape,
                 )
                 FilterChip(
                     selected = vibrateOverride == false,
                     onClick = { vibrateOverride = false },
                     label = { Text("Off") },
+                    shape = CircleShape,
                 )
             }
 
