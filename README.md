@@ -56,7 +56,8 @@ Tap **+** on the alarm list. The editor supports:
 
 The list is sorted by clock time from midnight onward (12:00 AM → 11:59 PM), ignoring dates.
 It shows each alarm's schedule and "Next ring: …". Use the on/off switch to enable or
-disable an alarm. The overflow menu (⋮) on an alarm offers:
+disable an alarm, or swipe an alarm left or right to delete it. The overflow menu (⋮) on an
+alarm offers:
 
 | Action | Behavior |
 | --- | --- |
