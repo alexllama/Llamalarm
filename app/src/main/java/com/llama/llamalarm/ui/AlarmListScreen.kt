@@ -92,7 +92,7 @@ fun AlarmListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("llamalarm") },
+                title = { Text("Llamalarm") },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
