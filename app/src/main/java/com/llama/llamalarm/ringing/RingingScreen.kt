@@ -97,12 +97,12 @@ fun RingingScreen(
                                 enabled = canSnooze,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(64.dp),
-                                shape = RoundedCornerShape(20.dp),
+                                    .height(104.dp),
+                                shape = RoundedCornerShape(24.dp),
                             ) {
                                 Text(
                                     text = Format.durationShort(duration),
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MaterialTheme.typography.headlineSmall,
                                 )
                             }
                         }
