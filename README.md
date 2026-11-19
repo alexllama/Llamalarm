@@ -10,26 +10,117 @@ Dark theme only. No account, no network access, no analytics.
 
 ## Requirements
 
-- Android device with API 37 or newer (developed and tested on a Samsung Galaxy S24 Ultra).
-- Android Studio (or a JDK matching the Gradle daemon toolchain, currently Java 25) to build
-  from source. The repository includes the Gradle wrapper.
+- **On the phone:** Android with API 37 or newer (developed and tested on a Samsung Galaxy
+  S24 Ultra). Sideloading must be allowed by the phone's owner.
+- **On the computer:** Android Studio with the Android SDK platform 37 installed, plus a JDK
+  for Gradle (Java 25 works; Android Studio's bundled JBR is fine). The repository includes
+  the Gradle wrapper, so you do not need a separate Gradle install. Building needs internet
+  access the first time so the wrapper and dependencies can be downloaded.
 
-## Install and first launch
+## Setting up the project on a new computer
 
-1. Build an APK (see [Building](#building)) or install a release APK you have built yourself:
+The source lives in Git, but a few local files are deliberately **not** committed. Set up a
+fresh machine like this:
+
+1. **Get the code.** From a terminal:
+
    ```sh
-   adb install -r app/build/outputs/apk/release/app-release.apk
+   git clone git@github.com:alexllama/Llamalarm.git
+   cd Llamalarm
    ```
-   Debug and release APKs have different signatures; uninstall the other one first if Android
-   refuses the install.
-2. Open Llamalarm. On first launch, grant the permissions it asks for (or use **Settings**
-   to open the relevant system pages):
-   - **Alarms & reminders** — exact scheduling, required for alarms to fire on time.
-   - **Notifications** — the ongoing ringing notification and the upcoming-alarm reminder.
-   - **Display over other apps** — lets the ringing screen appear over other apps.
-   - **Full-screen notifications** — lets the ringing screen wake the phone over the lock screen.
-3. Add your alarms in the app. There is no import from the stock Clock app; alarms are
-   recreated manually.
+
+   This uses SSH, so the new computer needs an SSH key added to your GitHub account. If you
+   prefer HTTPS, use `git clone https://github.com/alexllama/Llamalarm.git` instead.
+
+2. **Install Android Studio** and, in the SDK Manager, install the **Android SDK Platform 37**
+   plus build tools. When you open the project, Android Studio generates `local.properties`
+   with your SDK path (for example `sdk.dir=/home/alex/Android/Sdk`). That file is gitignored;
+   do not try to copy it from another machine.
+
+3. **Choose a JDK.** Point `JAVA_HOME` at a JDK, for example Android Studio's bundled one:
+
+   ```sh
+   export JAVA_HOME=/path/to/android-studio/jbr
+   ```
+
+   On this computer it is `/opt/android-studio/jbr`. You can also let Android Studio handle
+   builds from its GUI and skip setting `JAVA_HOME` in a terminal.
+
+4. **Restore the signing files** (needed to produce the same signed release APK as before).
+   Both are gitignored and must be copied from the machine that has them, or from your backup:
+
+   - `llamalarm-release.jks` — the release keystore.
+   - `keystore.properties` — the keystore password, key alias, and key password.
+
+   Keep both private. If you do not have them, you can generate a new keystore with Android
+   Studio (**Build → Generate Signed App Bundle / APK → Create new key…**) and write a
+   matching `keystore.properties`. Be aware that a new signing key means the new APK is a
+   *different app identity* to Android: you must uninstall the old version from the phone
+   before installing the new one, and that resets the app's local data. Without these files,
+   `assembleRelease` still produces an APK, but it will be unsigned and Android will refuse
+   to install it.
+
+5. **Verify the setup** by building and running the tests (see [Building](#building)):
+
+   ```sh
+   JAVA_HOME=/path/to/jdk ./gradlew assembleDebug testDebugUnitTest assembleRelease
+   ```
+
+   The signed release APK is written to `app/build/outputs/apk/release/app-release.apk`.
+
+## Installing the app on a phone
+
+There is no app store listing — the app is sideloaded as an APK. Pick one of these methods.
+
+### Method A — install with adb (recommended if a computer is available)
+
+1. On the phone, enable **Developer options** (tap *Build number* in Settings → About phone
+   seven times), then turn on **USB debugging**.
+2. Connect the phone by USB and approve the computer's debugging prompt on the phone.
+3. Confirm the device is visible:
+
+   ```sh
+   adb devices
+   ```
+
+4. Copy the APK from the computer that built it to the new computer if needed, then install:
+
+   ```sh
+   adb install -r /path/to/app-release.apk
+   ```
+
+   On the original computer the file is
+   `/home/alex/dev/Llamalarm/app/build/outputs/apk/release/app-release.apk`.
+   Use `-r` to replace an existing install. If Android reports a *signature mismatch*, the
+   APK was signed with a different key — uninstall the existing Llamalarm first (this deletes
+   its local alarms), then install again. Debug and release APKs also have different
+   signatures, so do not mix them.
+
+### Method B — install directly on the phone (no adb)
+
+1. Copy `app-release.apk` to the phone (USB file transfer, cloud drive, email attachment, etc.).
+2. On the phone, open the file in a file manager. Android will ask to allow installation from
+   that source; accept the prompt (Settings → Security/Privacy → *Install unknown apps*).
+3. Tap **Install** and wait for it to finish.
+
+   The first install must come from somewhere you trust — only use an APK you built yourself
+   or copied from your own machine.
+
+### First launch on the new phone
+
+Open Llamalarm and grant the permissions it asks for (or use **Settings** to open the relevant
+system pages):
+
+- **Alarms & reminders** — exact scheduling, required for alarms to fire on time.
+- **Notifications** — the ongoing ringing notification and the upcoming-alarm reminder.
+- **Display over other apps** — lets the ringing screen appear over other apps.
+- **Full-screen notifications** — lets the ringing screen wake the phone over the lock screen.
+
+Then recreate your alarms in the app. **Alarms and settings are stored only in the app's
+private storage on each device** — Llamalarm has no account, no export/import, and no
+transfer tool, and there is no import from the stock Clock app. Android cloud backup may
+restore app data when you sign in with the same Google account, but do not rely on it; assume
+you will enter the alarms manually on the new phone.
 
 ## Creating and editing alarms
 
@@ -121,11 +212,19 @@ and after time/timezone changes.
 
 ## Building
 
+First-time setup (SDK, JDK, signing files) is covered in
+[Setting up the project on a new computer](#setting-up-the-project-on-a-new-computer).
+
+From a terminal, in the project root:
+
 ```sh
 JAVA_HOME=/path/to/jdk ./gradlew assembleDebug
 JAVA_HOME=/path/to/jdk ./gradlew testDebugUnitTest
 JAVA_HOME=/path/to/jdk ./gradlew assembleRelease
 ```
+
+You can also build from Android Studio with **Build → Generate Signed App Bundle / APK → APK →
+release**; that uses the same `keystore.properties` and keystore described above.
 
 Debug and release APKs land in `app/build/outputs/apk/<variant>/`. The project uses AGP 9.5,
 Gradle 9.6, Kotlin 2.2, Compose, and `minSdk`/`targetSdk` 37.
