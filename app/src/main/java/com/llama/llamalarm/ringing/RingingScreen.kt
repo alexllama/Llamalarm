@@ -1,5 +1,6 @@
 package com.llama.llamalarm.ringing
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -22,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,6 +48,9 @@ fun RingingScreen(
     val canSnooze = instance == null ||
         (instance.phase == RingPhase.RINGING && instance.userSnoozeCount < RingStateMachine.MAX_USER_SNOOZES)
     val snoozeCount = instance?.userSnoozeCount ?: 0
+    // In landscape the fixed-height content is often taller than the screen, so make it scrollable.
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -57,11 +64,13 @@ fun RingingScreen(
                 ),
             ),
     ) {
+        val contentModifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .then(if (isLandscape) Modifier.verticalScroll(scrollState) else Modifier)
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+            modifier = contentModifier,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Alarm time
@@ -122,7 +131,13 @@ fun RingingScreen(
                 )
             }
 
-            Spacer(Modifier.weight(1f))
+            // In portrait this flexible spacer pins the title/Stop to the bottom. In landscape
+            // the column is scrollable, so a weight would be unbounded — use a fixed gap instead.
+            if (isLandscape) {
+                Spacer(Modifier.height(24.dp))
+            } else {
+                Spacer(Modifier.weight(1f))
+            }
 
             // Alarm title, up to three lines
             if (alarm.label.isNotBlank()) {

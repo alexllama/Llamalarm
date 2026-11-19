@@ -40,10 +40,11 @@ Tap **+** on the alarm list. The editor supports:
   future dates). Choosing **Repeats** starts with no days selected — pick the ones you want
   using the single-letter weekday chips, or tap **Every day**. Save stays disabled until at
   least one day is selected.
-- **Alarm title** — shown on the ringing screen (up to three lines). Tapping it scrolls the
-  field into view above the on-screen keyboard.
+- **Alarm title** — shown on the ringing screen (up to three lines). The first letter is always
+  capitalized. Tapping it scrolls the field into view above the on-screen keyboard.
 - **Pause** — set an inclusive **From**/**To** date window to skip every occurrence inside it;
-  **Clear** removes the window.
+  **Clear** removes the window. The list only says "Paused until …" while today is inside the
+  window; a pause scheduled for the future does not show that label yet.
 - **Ringtone** — choose **Default alarm sound**, **System sound** to open Android's own picker
   (showing the preinstalled alarm ringtones), or **Audio file** to pick a file from your
   music/audio library. Imported files are copied into the app's private storage, so
@@ -74,6 +75,7 @@ current wall-clock time), its title, and:
 
 - Six snooze buttons in two columns (edited in **Settings → Snooze options**).
 - A single-tap **Stop** at the bottom — no long-press or confirmation.
+- The layout scrolls in landscape so the snooze buttons and **Stop** stay reachable on short screens.
 - The screen wakes the display and appears over the lock screen and other apps. By default it
   also rings in silent/vibrate mode and through headphones; both can be changed in Settings.
 - An ongoing notification with a **Stop** action while ringing.

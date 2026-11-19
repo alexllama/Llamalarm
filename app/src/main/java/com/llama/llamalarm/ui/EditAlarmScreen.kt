@@ -88,7 +88,11 @@ fun EditAlarmScreen(
     var minute by remember { mutableIntStateOf(existing?.minute ?: 0) }
     var type by remember { mutableStateOf(existing?.type ?: AlarmType.ONE_SHOT) }
     var repeatMask by remember { mutableIntStateOf(existing?.repeatDaysMask ?: 0) }
-    var label by remember { mutableStateOf(existing?.label.orEmpty()) }
+    fun capitalizeFirst(text: String): String = text.replaceFirstChar { it.uppercaseChar() }
+
+    var label by remember {
+        mutableStateOf(capitalizeFirst(existing?.label.orEmpty()))
+    }
     // New alarms start from the last ringtone the user chose; editing keeps its own choice.
     var ringtoneUri by remember {
         mutableStateOf(if (existing == null) settings.defaultRingtoneUri else existing.ringtoneUri)
@@ -282,7 +286,7 @@ fun EditAlarmScreen(
             // Label — scroll it into view once the IME has resized the window.
             OutlinedTextField(
                 value = label,
-                onValueChange = { label = it },
+                onValueChange = { label = capitalizeFirst(it) },
                 label = { Text("Alarm title") },
                 placeholder = { Text("e.g. Wake up") },
                 singleLine = false,

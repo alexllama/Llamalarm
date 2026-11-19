@@ -42,7 +42,7 @@ class AlarmPlayer(
             return
         }
 
-        val uri = resolveRingtone(alarm)
+        val rawRingtone = alarm.ringtoneUri
         val usage = if (settings.respectHeadphones) {
             AudioAttributes.USAGE_MEDIA
         } else {
@@ -57,16 +57,26 @@ class AlarmPlayer(
         try {
             mp.setAudioAttributes(attributes)
             when {
-                uri.scheme == "file" || uri.path?.startsWith("/") == true -> {
-                    val path = uri.path ?: error("no path")
-                    if (!File(path).exists()) {
+                rawRingtone.isNullOrBlank() ->
+                    mp.setDataSource(context, AlarmScheduler.defaultAlarmRingtoneUri())
+
+                // Content URIs (including system ringtones) have paths starting with "/", so they
+                // must be handed to MediaPlayer as URIs, never treated as local file paths.
+                rawRingtone.startsWith("content://") ->
+                    mp.setDataSource(context, Uri.parse(rawRingtone))
+
+                else -> {
+                    val path = if (rawRingtone.startsWith("file://")) {
+                        Uri.parse(rawRingtone).path
+                    } else {
+                        rawRingtone
+                    }
+                    if (path == null || !File(path).exists()) {
                         mp.setDataSource(context, AlarmScheduler.defaultAlarmRingtoneUri())
                     } else {
                         mp.setDataSource(path)
                     }
                 }
-
-                else -> mp.setDataSource(context, uri)
             }
             mp.isLooping = true
             mp.setVolume(if (settings.gradualVolume) 0.05f else volume, volume)
@@ -105,16 +115,6 @@ class AlarmPlayer(
         mp.prepare()
         mp.start()
         player = mp
-    }
-
-    private fun resolveRingtone(alarm: Alarm): Uri {
-        val raw = alarm.ringtoneUri
-        if (raw.isNullOrBlank()) return AlarmScheduler.defaultAlarmRingtoneUri()
-        return if (raw.startsWith("content://") || raw.startsWith("file://")) {
-            Uri.parse(raw)
-        } else {
-            Uri.fromFile(File(raw))
-        }
     }
 
     private fun startVibration() {

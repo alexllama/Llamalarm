@@ -272,7 +272,11 @@ private fun AlarmCard(
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val today = LocalDate.now()
-    val paused = alarm.pauseEnd?.let { !it.isBefore(today) } == true
+    // A pause is "set" as soon as a future/active window is configured; it is only "active" once
+    // today actually falls inside that window. The list must not claim an alarm is paused for a
+    // window that has not started yet.
+    val pauseSet = alarm.pauseEnd?.let { !it.isBefore(today) } == true
+    val pauseActive = alarm.isPausedOn(today)
 
     Card(
         onClick = onClick,
@@ -312,7 +316,7 @@ private fun AlarmCard(
                 )
                 val nextLine = when {
                     !alarm.enabled -> "Off"
-                    paused -> "Paused until " + alarm.pauseEnd?.format(Format.dateMedium)
+                    pauseActive -> "Paused until " + alarm.pauseEnd?.format(Format.dateMedium)
                     alarm.skipNextAt != null -> "Next occurrence skipped"
                     else -> {
                         val next = OccurrenceCalculator.nextOccurrence(alarm, Instant.now())
@@ -322,7 +326,7 @@ private fun AlarmCard(
                 Text(
                     text = nextLine,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (paused) MaterialTheme.colorScheme.tertiary
+                    color = if (pauseActive) MaterialTheme.colorScheme.tertiary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -340,7 +344,7 @@ private fun AlarmCard(
                         onClick()
                     },
                 )
-                if (alarm.enabled && !paused) {
+                if (alarm.enabled && !pauseSet) {
                     DropdownMenuItem(
                         text = { Text("Skip next occurrence") },
                         onClick = {
@@ -350,13 +354,13 @@ private fun AlarmCard(
                     )
                 }
                 DropdownMenuItem(
-                    text = { Text(if (paused) "Change pause" else "Pause…") },
+                    text = { Text(if (pauseSet) "Change pause" else "Pause…") },
                     onClick = {
                         menuOpen = false
                         onPause()
                     },
                 )
-                if (paused) {
+                if (pauseSet) {
                     DropdownMenuItem(
                         text = { Text("Resume (clear pause)") },
                         onClick = {
