@@ -181,10 +181,18 @@ object Format {
         }
     }
 
+    /** The clock digits without AM/PM, e.g. "10:10". */
+    fun timeDigits(hour: Int, minute: Int): String =
+        LocalTime.of(hour, minute).format(time12)
+
+    fun amPm(hour: Int): String = if (hour < 12) "AM" else "PM"
+
     fun timeOfDay(hour: Int, minute: Int, is24h: Boolean = false): String =
-        LocalTime.of(hour, minute).let {
-            if (is24h) it.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
-            else it.format(time12) + " " + if (it.hour < 12) "AM" else "PM"
+        if (is24h) {
+            LocalTime.of(hour, minute)
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+        } else {
+            "${timeDigits(hour, minute)} ${amPm(hour)}"
         }
 
     fun relativeToNow(instant: Instant, now: Instant = Instant.now()): String {

@@ -3,6 +3,7 @@ package com.llama.llamalarm
 import com.llama.llamalarm.domain.Alarm
 import com.llama.llamalarm.domain.AlarmDefaults
 import com.llama.llamalarm.domain.AlarmType
+import com.llama.llamalarm.domain.Format
 import com.llama.llamalarm.domain.OccurrenceCalculator
 import com.llama.llamalarm.domain.RepeatDays
 import com.llama.llamalarm.domain.RingPhase
@@ -264,5 +265,18 @@ class AlarmDefaultsTest {
             LocalDate.of(2026, 1, 2),
             AlarmDefaults.dateForTime(9, 0, now, zone),
         )
+    }
+}
+
+class FormatTest {
+
+    @Test
+    fun `time digits and AM PM are split cleanly`() {
+        assertEquals("7:05", Format.timeDigits(7, 5))
+        assertEquals("AM", Format.amPm(7))
+        assertEquals("10:10", Format.timeDigits(10, 10))
+        assertEquals("AM", Format.amPm(10))
+        assertEquals("12:05", Format.timeDigits(12, 5))
+        assertEquals("PM", Format.amPm(12))
     }
 }

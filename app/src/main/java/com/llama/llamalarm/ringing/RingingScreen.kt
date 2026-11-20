@@ -73,14 +73,30 @@ fun RingingScreen(
             modifier = contentModifier,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Alarm time
-            Text(
-                text = Format.timeOfDay(alarm.hour, alarm.minute),
-                fontSize = 88.sp,
-                fontWeight = FontWeight.Light,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-            )
+            // Alarm time — keep AM/PM in its own column so four-digit times never overlap it.
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Text(
+                    text = Format.timeDigits(alarm.hour, alarm.minute),
+                    fontSize = 88.sp,
+                    fontWeight = FontWeight.Light,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false,
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    text = Format.amPm(alarm.hour),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    maxLines = 1,
+                    softWrap = false,
+                )
+            }
             Text(
                 text = "Alarm",
                 style = MaterialTheme.typography.titleMedium,
