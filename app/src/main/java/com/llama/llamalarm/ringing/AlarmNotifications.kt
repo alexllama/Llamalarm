@@ -115,6 +115,9 @@ class AlarmNotifications(private val context: Context) {
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(mainActivityIntent())
+            // Swiping the reminder away (or "Clear all") should mean the same as tapping
+            // Dismiss: skip the pending occurrence, not just hide the notification.
+            .setDeleteIntent(dismissUpcomingIntent(alarm.id))
             .addAction(0, "Dismiss", dismissUpcomingIntent(alarm.id))
             .build()
     }

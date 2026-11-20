@@ -187,8 +187,12 @@ instance schedules the next occurrence; a one-time alarm is switched off after i
 ## Notifications and Settings
 
 A dismissible **"Alarm in X"** notification is posted about 2 hours before the next alarm,
-showing the alarm time and label; tapping it opens the app. It is cleared automatically when
-the alarm starts ringing. Disable it with **Settings → Upcoming alarm notification**.
+showing the alarm time and label; tapping the notification body opens the app. Its **Dismiss**
+action — or swiping the notification away — skips that alarm's next occurrence, exactly like
+the **Skip next occurrence** menu item in the app (for a one-time alarm this turns it off).
+This is a real cancellation, not just hiding the reminder: the alarm will not ring and will be
+re-armed for the occurrence after the skipped one. It is cleared automatically when the alarm
+starts ringing. Disable the notification with **Settings → Upcoming alarm notification**.
 
 **Settings** contains:
 

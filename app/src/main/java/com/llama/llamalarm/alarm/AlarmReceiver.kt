@@ -14,8 +14,20 @@ import kotlinx.coroutines.launch
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_DISMISS_UPCOMING) {
-            intent.getStringExtra(EXTRA_ALARM_ID)?.let {
-                AlarmNotifications(context).cancelUpcoming(it)
+            // Dismissing the "Alarm in X" reminder means the user does not want that alarm to
+            // ring. Merely hiding the notification left the scheduled ring intact, so skip the
+            // pending occurrence and re-arm the alarm for the one after it.
+            val alarmId = intent.getStringExtra(EXTRA_ALARM_ID) ?: return
+            val pending = goAsync()
+            CoroutineScope(Dispatchers.Default).launch {
+                try {
+                    AlarmNotifications(context).cancelUpcoming(alarmId)
+                    val app = context.applicationContext as com.llama.llamalarm.LlamalarmApp
+                    app.container.alarmRepository.skipNext(alarmId)
+                    app.container.scheduler.reschedule(alarmId)
+                } finally {
+                    pending.finish()
+                }
             }
             return
         }
