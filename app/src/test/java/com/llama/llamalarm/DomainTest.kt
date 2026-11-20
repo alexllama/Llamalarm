@@ -1,6 +1,7 @@
 package com.llama.llamalarm
 
 import com.llama.llamalarm.domain.Alarm
+import com.llama.llamalarm.domain.AlarmDefaults
 import com.llama.llamalarm.domain.AlarmType
 import com.llama.llamalarm.domain.OccurrenceCalculator
 import com.llama.llamalarm.domain.RepeatDays
@@ -223,5 +224,45 @@ class RingStateMachineTest {
         assertEquals(5, instance.userSnoozeCount)
         assertFalse(RingStateMachine.canSnooze(instance))
         assertNull(RingStateMachine.snooze(instance, t0 + 999_999L, 60_000L))
+    }
+}
+
+class AlarmDefaultsTest {
+
+    private val zone = ZoneOffset.UTC
+
+    @Test
+    fun `new alarm starts at the current time rounded up today`() {
+        val start = AlarmDefaults.startForNewAlarm(
+            LocalDateTime.of(2026, 1, 1, 10, 42, 17).toInstant(zone),
+            zone,
+        )
+        assertEquals(10, start.hour)
+        assertEquals(45, start.minute)
+        assertEquals(LocalDate.of(2026, 1, 1), start.date)
+    }
+
+    @Test
+    fun `new alarm near midnight rolls to the next day`() {
+        val start = AlarmDefaults.startForNewAlarm(
+            LocalDateTime.of(2026, 1, 1, 23, 58).toInstant(zone),
+            zone,
+        )
+        assertEquals(0, start.hour)
+        assertEquals(0, start.minute)
+        assertEquals(LocalDate.of(2026, 1, 2), start.date)
+    }
+
+    @Test
+    fun `chosen time keeps today until it has passed`() {
+        val now = LocalDateTime.of(2026, 1, 1, 10, 42).toInstant(zone)
+        assertEquals(
+            LocalDate.of(2026, 1, 1),
+            AlarmDefaults.dateForTime(15, 30, now, zone),
+        )
+        assertEquals(
+            LocalDate.of(2026, 1, 2),
+            AlarmDefaults.dateForTime(9, 0, now, zone),
+        )
     }
 }

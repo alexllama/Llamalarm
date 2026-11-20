@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.llama.llamalarm.domain.Alarm
+import com.llama.llamalarm.domain.AlarmDefaults
 import com.llama.llamalarm.domain.AlarmType
 import com.llama.llamalarm.domain.Format
 import com.llama.llamalarm.domain.OccurrenceCalculator
@@ -83,9 +84,12 @@ fun EditAlarmScreen(
     val scrollState = rememberScrollState()
     val titleBringIntoView = remember { BringIntoViewRequester() }
     val scope = rememberCoroutineScope()
+    val now = remember { Instant.now() }
+    // Start new alarms on a slot that is still ahead today instead of pinning them to tomorrow.
+    val defaultStart = remember(now) { AlarmDefaults.startForNewAlarm(now) }
 
-    var hour by remember { mutableIntStateOf(existing?.hour ?: 7) }
-    var minute by remember { mutableIntStateOf(existing?.minute ?: 0) }
+    var hour by remember { mutableIntStateOf(existing?.hour ?: defaultStart.hour) }
+    var minute by remember { mutableIntStateOf(existing?.minute ?: defaultStart.minute) }
     var type by remember { mutableStateOf(existing?.type ?: AlarmType.ONE_SHOT) }
     var repeatMask by remember { mutableIntStateOf(existing?.repeatDaysMask ?: 0) }
     fun capitalizeFirst(text: String): String = text.replaceFirstChar { it.uppercaseChar() }
@@ -103,11 +107,17 @@ fun EditAlarmScreen(
     var volumeOverride by remember { mutableStateOf(existing?.volume) }
     var vibrate by remember { mutableStateOf(existing?.vibrate ?: false) }
     var oneShotDate by remember {
-        mutableStateOf(existing?.date ?: LocalDate.now().plusDays(1))
+        mutableStateOf(existing?.date ?: defaultStart.date)
     }
+    // New one-time alarms (and recurring ones without a start date) follow the picked time
+    // until a date is chosen manually.
+    var dateFollowsTime by remember { mutableStateOf(existing == null || existing.date == null) }
     var pauseStart by remember { mutableStateOf(existing?.pauseStart) }
     var pauseEnd by remember { mutableStateOf(existing?.pauseEnd) }
-    val now = remember { Instant.now() }
+
+    fun updateDateForTime(h: Int, m: Int) {
+        if (dateFollowsTime) oneShotDate = AlarmDefaults.dateForTime(h, m, now)
+    }
 
     val ringtoneLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
@@ -170,7 +180,7 @@ fun EditAlarmScreen(
         !java.time.LocalDateTime.of(oneShotDate, java.time.LocalTime.of(hour, minute))
             .atZone(java.time.ZoneId.systemDefault())
             .toInstant()
-            .isAfter(now)
+            .isAfter(Instant.now())
     val invalid = (type == AlarmType.RECURRING && repeatMask == 0) || oneShotInPast
 
     Scaffold(
@@ -221,6 +231,7 @@ fun EditAlarmScreen(
                         showTimePicker(context, hour, minute) { h, m ->
                             hour = h
                             minute = m
+                            updateDateForTime(h, m)
                         }
                     },
             )
@@ -239,7 +250,10 @@ fun EditAlarmScreen(
                 )
                 FilterChip(
                     selected = type == AlarmType.ONE_SHOT,
-                    onClick = { type = AlarmType.ONE_SHOT },
+                    onClick = {
+                        type = AlarmType.ONE_SHOT
+                        updateDateForTime(hour, minute)
+                    },
                     label = { Text("Once") },
                 )
             }
@@ -269,6 +283,7 @@ fun EditAlarmScreen(
                     onClick = {
                         showDatePicker(context, oneShotDate, LocalDate.now()) { picked ->
                             oneShotDate = picked
+                            dateFollowsTime = false
                         }
                     },
                 ) {

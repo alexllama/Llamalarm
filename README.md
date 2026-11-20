@@ -126,9 +126,12 @@ you will enter the alarms manually on the new phone.
 
 Tap **+** on the alarm list. The editor supports:
 
-- **Time**, using the time picker.
+- **Time**, using the time picker. New alarms start at the current time rounded up to the next
+  5 minutes, on today's date, so the default is never already in the past.
 - **Once** vs **Repeats**: **Once** is the default. A one-time alarm needs a date (including
-  future dates). Choosing **Repeats** starts with no days selected — pick the ones you want
+  future dates). For a new alarm the date follows the time you pick: it stays today when that
+  time is still ahead and rolls to tomorrow only if the time has already passed. Choosing a date
+  yourself pins it. Choosing **Repeats** starts with no days selected — pick the ones you want
   using the single-letter weekday chips, or tap **Every day**. Save stays disabled until at
   least one day is selected.
 - **Alarm title** — shown on the ringing screen (up to three lines). The first letter is always

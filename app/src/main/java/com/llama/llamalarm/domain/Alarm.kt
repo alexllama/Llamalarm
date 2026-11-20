@@ -199,6 +199,39 @@ object Format {
     }
 }
 
+data class DefaultAlarmStart(val hour: Int, val minute: Int, val date: LocalDate)
+
+object AlarmDefaults {
+    private const val ROUND_UP_MINUTES = 5
+
+    /** New alarms start at the current time rounded up to the next 5 minutes, on today's date. */
+    fun startForNewAlarm(
+        now: Instant = Instant.now(),
+        zone: ZoneId = ZoneId.systemDefault(),
+    ): DefaultAlarmStart {
+        val localNow = now.atZone(zone)
+        val minute = localNow.minute
+        val bump = when {
+            localNow.second == 0 && localNow.nano == 0 && minute % ROUND_UP_MINUTES == 0 -> 0
+            else -> ROUND_UP_MINUTES - (minute % ROUND_UP_MINUTES)
+        }
+        val start = localNow.withSecond(0).withNano(0).plusMinutes(bump.toLong())
+        return DefaultAlarmStart(start.hour, start.minute, start.toLocalDate())
+    }
+
+    /** Keep today for a chosen time that is still ahead; only roll to tomorrow once it has passed. */
+    fun dateForTime(
+        hour: Int,
+        minute: Int,
+        now: Instant = Instant.now(),
+        zone: ZoneId = ZoneId.systemDefault(),
+    ): LocalDate {
+        val today = now.atZone(zone).toLocalDate()
+        val candidate = LocalDateTime.of(today, LocalTime.of(hour, minute)).atZone(zone).toInstant()
+        return if (candidate.isAfter(now)) today else today.plusDays(1)
+    }
+}
+
 object OccurrenceCalculator {
     private const val MAX_DAYS_AHEAD = 400
 
